@@ -7,7 +7,7 @@ import QuotaProgress from "@/components/QuotaProgress";
 import RequestCounterCard from "@/components/RequestCounterCard";
 import TokenEstimator from "@/components/TokenEstimator";
 import UserSelector from "@/components/UserSelector";
-import { generateText, getApiBaseUrl, getQuotaHistory, getQuotaStatus } from "@/services/api";
+import { generateText, getApiBaseUrl, getQuotaStatus } from "@/services/api";
 
 const defaultMessages = [
   {
@@ -28,6 +28,7 @@ const defaultStatus = {
 
 function estimateTokens(prompt) {
   const trimmedPrompt = prompt.trim();
+
   if (!trimmedPrompt) {
     return 0;
   }
@@ -59,7 +60,6 @@ export default function HomePage() {
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState(defaultMessages);
   const [quotaStatus, setQuotaStatus] = useState(defaultStatus);
-  const [historyItems, setHistoryItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [statusError, setStatusError] = useState("");
@@ -68,6 +68,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const savedUserId = window.localStorage.getItem("demo-user-id");
+
     if (savedUserId) {
       setSelectedUserId(savedUserId);
     }
@@ -95,18 +96,13 @@ export default function HomePage() {
   }, [quotaStatus.remainingLockSeconds]);
 
   useEffect(() => {
-    async function loadDashboard() {
+    async function loadStatus() {
       setIsInitializing(true);
       setStatusError("");
 
       try {
-        const [statusPayload, historyPayload] = await Promise.all([
-          getQuotaStatus(selectedUserId),
-          getQuotaHistory(selectedUserId)
-        ]);
-
+        const statusPayload = await getQuotaStatus(selectedUserId);
         setQuotaStatus(normalizeStatus(statusPayload));
-        setHistoryItems(Array.isArray(historyPayload) ? historyPayload : historyPayload?.items || []);
       } catch (error) {
         setStatusError(
           error.message === "Missing NEXT_PUBLIC_API_BASE_URL"
@@ -118,20 +114,26 @@ export default function HomePage() {
       }
     }
 
-    loadDashboard();
+    loadStatus();
   }, [selectedUserId]);
+
+  const isSendLocked = quotaStatus.remainingLockSeconds > 0;
+  const isQuotaExhausted =
+    quotaStatus.quotaLimit > 0 && quotaStatus.quotaUsed >= quotaStatus.quotaLimit;
+  const isSubmitBlocked = isInitializing || isSendLocked || isQuotaExhausted;
 
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (!prompt.trim() || isSendLocked) {
+    if (!prompt.trim() || isSubmitBlocked) {
       return;
     }
 
+    const currentPrompt = prompt;
     const userMessage = {
       id: `user-${Date.now()}`,
       role: "user",
-      content: prompt
+      content: currentPrompt
     };
 
     setMessages((currentMessages) => [...currentMessages, userMessage]);
@@ -139,7 +141,7 @@ export default function HomePage() {
     setStatusError("");
 
     try {
-      const payload = await generateText(selectedUserId, prompt, estimatedTokens);
+      const payload = await generateText(selectedUserId, currentPrompt, estimateTokens(currentPrompt));
       const assistantMessage = {
         id: `assistant-${Date.now()}`,
         role: "assistant",
@@ -179,17 +181,18 @@ export default function HomePage() {
     }
   }
 
-  const isSendLocked = quotaStatus.remainingLockSeconds > 0;
   const disabledMessage = isSendLocked
     ? `Límite alcanzado. Podrás enviar nuevamente en ${quotaStatus.remainingLockSeconds}s.`
-    : "El envío usa el backend real y mostrará el consumo controlado por el proxy.";
+    : isQuotaExhausted
+      ? "La cuota mensual está agotada para este usuario."
+      : "El envío usa el backend real y mostrará el consumo controlado por el proxy.";
 
   return (
     <main className="mx-auto min-h-screen max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="rounded-[2rem] border border-white/60 bg-white/55 p-6 shadow-panel backdrop-blur xl:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-ocean">Proxy Pattern Demo</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-ocean">Demo del proxy</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-ink">
               Plataforma de consumo IA con control visible de cuota y límite
             </h1>
@@ -202,9 +205,7 @@ export default function HomePage() {
             <UserSelector selectedUserId={selectedUserId} onChange={setSelectedUserId} />
             <div className="rounded-2xl bg-white/80 px-4 py-3 shadow-panel">
               <p className="text-sm font-medium text-slate-500">Backend conectado</p>
-              <p className="mt-1 break-all text-sm text-ink">
-                {getApiBaseUrl() || "Sin configurar"}
-              </p>
+              <p className="mt-1 break-all text-sm text-ink">{getApiBaseUrl() || "Sin configurar"}</p>
             </div>
             <div className="rounded-2xl bg-white/80 px-4 py-3 shadow-panel">
               <p className="text-sm font-medium text-slate-500">Plan actual</p>
@@ -228,7 +229,7 @@ export default function HomePage() {
             onPromptChange={setPrompt}
             onSubmit={handleSubmit}
             isLoading={isLoading}
-            isSendDisabled={isInitializing || isSendLocked}
+            isSendDisabled={isSubmitBlocked}
             disabledMessage={disabledMessage}
           />
 
@@ -242,24 +243,14 @@ export default function HomePage() {
             <TokenEstimator estimatedTokens={estimatedTokens} />
 
             <section className="rounded-3xl bg-white/90 p-5 shadow-panel">
-              <p className="text-sm font-medium text-slate-500">Historial reciente</p>
-              <div className="mt-4 space-y-3">
-                {historyItems.length === 0 ? (
-                  <p className="text-sm text-slate-500">
-                    {isInitializing
-                      ? "Cargando historial..."
-                      : "Aún no hay datos de historial para este usuario."}
-                  </p>
-                ) : (
-                  historyItems.slice(0, 5).map((item, index) => (
-                    <div key={`${item?.date || "history"}-${index}`} className="rounded-2xl bg-slate-50 px-4 py-3">
-                      <p className="text-sm font-medium text-ink">{item?.date || "Registro"}</p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {item?.tokens ?? item?.usedTokens ?? 0} tokens utilizados
-                      </p>
-                    </div>
-                  ))
-                )}
+              <p className="text-sm font-medium text-slate-500">Estado del backend</p>
+              <div className="mt-4 grid gap-3 text-sm text-slate-600">
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  La cuota se consulta al abrir la pantalla y después de cada generación exitosa.
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  El usuario demo seleccionado se usa de forma consistente en todas las solicitudes.
+                </div>
               </div>
             </section>
           </div>

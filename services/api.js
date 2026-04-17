@@ -8,6 +8,16 @@ function buildUrl(path) {
   return `${apiBaseUrl}${path}`;
 }
 
+function buildStatusUrl(userId) {
+  const url = new URL(buildUrl("/api/quota/status"));
+
+  if (userId) {
+    url.searchParams.set("userId", userId);
+  }
+
+  return url.toString();
+}
+
 async function parseResponse(response) {
   const contentType = response.headers.get("content-type") || "";
   const payload = contentType.includes("application/json")
@@ -46,16 +56,7 @@ function createRequestOptions(method, userId, body) {
 }
 
 export async function getQuotaStatus(userId) {
-  const response = await fetch(buildUrl("/api/quota/status"), {
-    ...createRequestOptions("GET", userId),
-    cache: "no-store"
-  });
-
-  return parseResponse(response);
-}
-
-export async function getQuotaHistory(userId) {
-  const response = await fetch(buildUrl("/api/quota/history"), {
+  const response = await fetch(buildStatusUrl(userId), {
     ...createRequestOptions("GET", userId),
     cache: "no-store"
   });
@@ -67,19 +68,9 @@ export async function generateText(userId, prompt, estimatedTokens) {
   const response = await fetch(
     buildUrl("/api/ai/generate"),
     createRequestOptions("POST", userId, {
+      userId,
       prompt,
       estimatedTokens
-    })
-  );
-
-  return parseResponse(response);
-}
-
-export async function upgradePlan(userId, plan) {
-  const response = await fetch(
-    buildUrl("/api/quota/upgrade"),
-    createRequestOptions("POST", userId, {
-      plan
     })
   );
 
