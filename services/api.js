@@ -1,14 +1,6 @@
-function readApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_API_BASE_URL || "").trim();
-}
+const apiBaseUrl = "https://back-plataformaconsumoia.onrender.com";
 
 function buildUrl(path) {
-  const apiBaseUrl = readApiBaseUrl();
-
-  if (!apiBaseUrl) {
-    throw new Error("Missing NEXT_PUBLIC_API_BASE_URL");
-  }
-
   return `${apiBaseUrl}${path}`;
 }
 
@@ -134,5 +126,5 @@ export async function upgradePlan(userId, plan) {
 }
 
 export function getApiBaseUrl() {
-  return readApiBaseUrl();
+  return apiBaseUrl;
 }
