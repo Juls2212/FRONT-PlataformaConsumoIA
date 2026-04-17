@@ -23,11 +23,11 @@ export default function RequestCounterCard({
           {isLocked ? "Bloqueado" : "Disponible"}
         </span>
       </div>
-      <p className="mt-4 text-sm text-slate-600">
+      <div className={`mt-4 rounded-2xl px-4 py-3 text-sm ${isLocked ? "bg-red-50 text-red-700" : "bg-slate-50 text-slate-600"}`}>
         {isLocked
-          ? `Espera ${lockSeconds}s para volver a enviar.`
+          ? `Límite alcanzado. Espera ${lockSeconds}s para volver a enviar.`
           : "Puedes seguir enviando solicitudes dentro del minuto actual."}
-      </p>
+      </div>
     </section>
   );
 }

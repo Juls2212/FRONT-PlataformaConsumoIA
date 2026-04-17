@@ -47,14 +47,17 @@ export default function ChatPanel({
           onChange={(event) => onPromptChange(event.target.value)}
           rows={4}
           placeholder="Escribe lo que quieres generar..."
-          className="mt-2 w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-ink outline-none transition focus:border-ocean"
+          className="mt-2 w-full resize-none rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-ink outline-none transition focus:border-ocean disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={isLoading}
         />
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">{disabledMessage}</p>
+          <p className={`text-sm ${isSendDisabled ? "font-semibold text-red-700" : "text-slate-500"}`}>
+            {disabledMessage}
+          </p>
           <button
             type="submit"
             disabled={isSendDisabled || isLoading}
-            className="inline-flex items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ocean disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="inline-flex items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ocean disabled:cursor-not-allowed disabled:bg-red-300 disabled:text-red-900"
           >
             {isLoading ? "Enviando..." : "Enviar"}
           </button>
