@@ -1,7 +1,7 @@
 const demoUsers = [
-  { id: "student-free", label: "Estudiante Free" },
-  { id: "student-basic", label: "Estudiante Basic" },
-  { id: "student-pro", label: "Estudiante Pro" }
+  { id: "student-free", label: "Estudiante gratuito" },
+  { id: "student-basic", label: "Estudiante básico" },
+  { id: "student-pro", label: "Estudiante pro" }
 ];
 
 export default function UserSelector({ selectedUserId, onChange }) {

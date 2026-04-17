@@ -12,14 +12,14 @@ export default function ChatPanel({
       <div className="border-b border-slate-100 px-6 py-5">
         <h2 className="text-xl font-semibold text-ink">Generador de texto</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Envía un prompt y observa cómo la plataforma refleja el control del proxy.
+          Envía un mensaje y observa cómo la plataforma refleja el control del proxy.
         </p>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
         {messages.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
-            Aún no hay mensajes. Escribe un prompt para iniciar la demo.
+            Aún no hay mensajes. Escribe un mensaje para iniciar la demo.
           </div>
         ) : (
           messages.map((message) => (
@@ -39,7 +39,7 @@ export default function ChatPanel({
 
       <form onSubmit={onSubmit} className="border-t border-slate-100 px-6 py-5">
         <label className="block text-sm font-medium text-slate-500" htmlFor="prompt-input">
-          Prompt
+          Mensaje
         </label>
         <textarea
           id="prompt-input"

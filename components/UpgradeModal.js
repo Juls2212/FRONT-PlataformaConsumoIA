@@ -1,6 +1,6 @@
 const availablePlans = [
-  { id: "BASIC", label: "Plan Basic", description: "Más solicitudes y más cuota mensual." },
-  { id: "PRO", label: "Plan Pro", description: "Mayor capacidad para seguir con la demo sin interrupciones." }
+  { id: "BASIC", label: "Plan básico", description: "Más solicitudes y más cuota mensual." },
+  { id: "PRO", label: "Plan pro", description: "Mayor capacidad para seguir con la demo sin interrupciones." }
 ];
 
 export default function UpgradeModal({
