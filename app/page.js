@@ -47,10 +47,10 @@ function estimateTokens(prompt) {
 function normalizeStatus(payload) {
   return {
     plan: payload?.plan || payload?.currentPlan || "FREE",
-    quotaUsed: payload?.quotaUsed ?? payload?.monthlyUsed ?? 0,
-    quotaLimit: payload?.quotaLimit ?? payload?.monthlyLimit ?? 0,
-    currentRequests: payload?.currentRequests ?? payload?.requestsThisMinute ?? 0,
-    requestLimit: payload?.requestLimit ?? payload?.requestsPerMinute ?? 0,
+    quotaUsed: payload?.quotaUsed ?? payload?.monthlyUsed ?? payload?.monthlyTokensUsed ?? 0,
+    quotaLimit: payload?.quotaLimit ?? payload?.monthlyLimit ?? payload?.monthlyTokenLimit ?? 0,
+    currentRequests: payload?.currentRequests ?? payload?.requestsThisMinute ?? payload?.requestsUsedCurrentMinute ?? 0,
+    requestLimit: payload?.requestLimit ?? payload?.requestsPerMinute ?? payload?.requestLimitCurrentMinute ?? 0,
     remainingLockSeconds: payload?.remainingLockSeconds ?? payload?.retryAfterSeconds ?? 0
   };
 }
@@ -60,7 +60,7 @@ function normalizeGeneratedText(payload) {
     return payload;
   }
 
-  return payload?.text || payload?.response || payload?.message || "Respuesta recibida.";
+  return payload?.generatedText || payload?.text || payload?.response || payload?.message || "Respuesta recibida.";
 }
 
 function createLastSevenDays() {

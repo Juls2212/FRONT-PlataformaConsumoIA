@@ -1,14 +1,29 @@
 const apiBaseUrl = "https://back-plataformaconsumoia.onrender.com";
 
+const demoUserIdMap = {
+  "student-free": 1,
+  "student-basic": 2,
+  "student-pro": 3
+};
+
+function resolveUserId(userId) {
+  if (typeof userId === "number") {
+    return userId;
+  }
+
+  return demoUserIdMap[userId] ?? userId;
+}
+
 function buildUrl(path) {
   return `${apiBaseUrl}${path}`;
 }
 
 function buildStatusUrl(userId) {
   const url = new URL(buildUrl("/api/quota/status"));
+  const resolvedUserId = resolveUserId(userId);
 
-  if (userId) {
-    url.searchParams.set("userId", userId);
+  if (resolvedUserId) {
+    url.searchParams.set("userId", resolvedUserId);
   }
 
   return url.toString();
@@ -16,9 +31,10 @@ function buildStatusUrl(userId) {
 
 function buildHistoryUrl(userId) {
   const url = new URL(buildUrl("/api/quota/history"));
+  const resolvedUserId = resolveUserId(userId);
 
-  if (userId) {
-    url.searchParams.set("userId", userId);
+  if (resolvedUserId) {
+    url.searchParams.set("userId", resolvedUserId);
   }
 
   return url.toString();
@@ -67,12 +83,13 @@ async function parseResponse(response) {
 }
 
 function createRequestOptions(method, userId, body) {
+  const resolvedUserId = resolveUserId(userId);
   const headers = {
     "Content-Type": "application/json"
   };
 
-  if (userId) {
-    headers["x-user-id"] = userId;
+  if (resolvedUserId) {
+    headers["x-user-id"] = resolvedUserId;
   }
 
   return {
@@ -101,10 +118,11 @@ export async function getQuotaHistory(userId) {
 }
 
 export async function generateText(userId, prompt, estimatedTokens) {
+  const resolvedUserId = resolveUserId(userId);
   const response = await fetch(
     buildUrl("/api/ai/generate"),
-    createRequestOptions("POST", userId, {
-      userId,
+    createRequestOptions("POST", resolvedUserId, {
+      userId: resolvedUserId,
       prompt,
       estimatedTokens
     })
@@ -114,10 +132,11 @@ export async function generateText(userId, prompt, estimatedTokens) {
 }
 
 export async function upgradePlan(userId, plan) {
+  const resolvedUserId = resolveUserId(userId);
   const response = await fetch(
     buildUrl("/api/quota/upgrade"),
-    createRequestOptions("POST", userId, {
-      userId,
+    createRequestOptions("POST", resolvedUserId, {
+      userId: resolvedUserId,
       plan
     })
   );
