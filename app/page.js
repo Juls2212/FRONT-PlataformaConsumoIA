@@ -7,7 +7,6 @@ import QuotaProgress from "@/components/QuotaProgress";
 import RequestCounterCard from "@/components/RequestCounterCard";
 import TokenEstimator from "@/components/TokenEstimator";
 import UpgradeModal from "@/components/UpgradeModal";
-import UsageHistoryChart from "@/components/UsageHistoryChart";
 import UserSelector from "@/components/UserSelector";
 import {
   generateText,
@@ -382,9 +381,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-6">
-            <UsageHistoryChart data={historyData} isLoading={isHistoryLoading} />
-          </div>
         </section>
       </main>
 
